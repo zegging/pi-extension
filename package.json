@@ -1,0 +1,27 @@
+{
+  "name": "pi-extension-monorepo",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Monorepo of Qunhe-authored pi extensions. Each package under packages/* is an independently versioned pi extension distributed via git tags (not npm).",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "clean": "npm run clean --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
+    "check": "npm run check --workspaces --if-present && tsc --noEmit",
+    "test": "npm run test --workspaces --if-present",
+    "release": "node scripts/release.mjs",
+    "new": "node scripts/new-package.mjs"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-tui": "^0.80.3",
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.3",
+    "vitest": "^2.1.9"
+  },
+  "engines": {
+    "node": ">=22.19.0"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "name": "pi-elasticsearch-http",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "keywords": ["pi-package", "pi-extension", "elasticsearch", "http"],
+  "description": "Pi extension for safe, reproducible Elasticsearch HTTP requests from .http/.rest files or raw HTTP text.",
+  "scripts": {
+    "clean": "echo 'nothing to clean'",
+    "build": "echo 'nothing to build'",
+    "check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "release:patch": "node ../../scripts/release.mjs pi-elasticsearch-http patch",
+    "release:minor": "node ../../scripts/release.mjs pi-elasticsearch-http minor",
+    "release:major": "node ../../scripts/release.mjs pi-elasticsearch-http major"
+  },
+  "pi": {
+    "extensions": ["./src/index.ts"]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-tui": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.3",
+    "vitest": "^2.1.9"
+  }
+}
