@@ -4,6 +4,12 @@
   "private": true,
   "type": "module",
   "description": "Monorepo of Pi extensions. Each package under packages/* is an independently versioned Pi package published to npm.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zegging/pi-extension.git"
+  },
+  "packageManager": "npm@11.13.0",
   "workspaces": [
     "packages/*"
   ],

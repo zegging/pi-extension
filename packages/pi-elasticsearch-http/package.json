@@ -1,5 +1,5 @@
 {
-  "name": "pi-elasticsearch-http",
+  "name": "@zegging/pi-elasticsearch-http",
   "version": "0.1.0",
   "description": "Pi extension for safe, reproducible Elasticsearch HTTP requests from .http/.rest files or raw HTTP text.",
   "type": "module",
@@ -13,8 +13,10 @@
   "keywords": [
     "pi-package",
     "pi-extension",
+    "pi",
     "elasticsearch",
-    "http"
+    "http",
+    "rest-client"
   ],
   "author": "zegging",
   "license": "MIT",

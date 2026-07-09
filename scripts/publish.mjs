@@ -16,7 +16,7 @@
 
 import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 
 const dryRun = process.argv.includes("--dry-run");
 const packageFilter = process.argv.slice(2).find((arg) => arg !== "--dry-run");
@@ -57,7 +57,13 @@ function discoverPackages() {
 		.filter((entry) => entry.isDirectory())
 		.map((entry) => ({ directory: join(packagesDir, entry.name), packageJson: readPackageJson(join(packagesDir, entry.name)) }))
 		.filter((pkg) => pkg.packageJson.private !== true)
-		.filter((pkg) => !packageFilter || pkg.packageJson.name === packageFilter || pkg.directory === packageFilter);
+		.filter(
+			(pkg) =>
+				!packageFilter ||
+				pkg.packageJson.name === packageFilter ||
+				pkg.directory === packageFilter ||
+				basename(pkg.directory) === packageFilter,
+		);
 }
 
 function validatePackageJson(pkg) {

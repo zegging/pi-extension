@@ -85,13 +85,13 @@ The publish script is modeled on `~/project/pi/scripts/publish.mjs`:
 
 ```bash
 # latest npm version
-pi install npm:pi-elasticsearch-http
+pi install npm:@zegging/pi-elasticsearch-http
 
 # pinned npm version
-pi install npm:pi-elasticsearch-http@0.1.0
+pi install npm:@zegging/pi-elasticsearch-http@0.1.0
 
 # try without installing permanently
-pi -e npm:pi-elasticsearch-http@0.1.0
+pi -e npm:@zegging/pi-elasticsearch-http@0.1.0
 ```
 
 ## Root scripts

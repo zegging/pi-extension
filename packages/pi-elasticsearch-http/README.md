@@ -8,13 +8,13 @@ Primary target: self-hosted Elasticsearch 6.x.
 
 ```bash
 # latest
-pi install npm:pi-elasticsearch-http
+pi install npm:@zegging/pi-elasticsearch-http
 
 # pinned
-pi install npm:pi-elasticsearch-http@0.1.0
+pi install npm:@zegging/pi-elasticsearch-http@0.1.0
 
 # try without installing permanently
-pi -e npm:pi-elasticsearch-http@0.1.0
+pi -e npm:@zegging/pi-elasticsearch-http@0.1.0
 ```
 
 Local development from this monorepo:
