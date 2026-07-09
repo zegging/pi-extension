@@ -1,16 +1,6 @@
 #!/usr/bin/env node
 /**
- * Scaffold a new pi extension package under packages/<name>/.
- *
- * Layout produced:
- *   packages/<name>/
- *     package.json      — private, "pi.extensions" entry, peerDeps on pi
- *     tsconfig.json     — extends ../../tsconfig.base.json
- *     vitest.config.ts  — per-package overrides
- *     README.md         — install/usage template
- *     CHANGELOG.md      — Keep-a-Changelog format with [Unreleased] section
- *     src/index.ts      — default-exported pi entry stub
- *     tests/.gitkeep
+ * Scaffold a new npm-publishable Pi extension package under packages/<name>/.
  *
  * Usage:
  *   node scripts/new-package.mjs <name>
@@ -39,10 +29,21 @@ mkdirSync(resolve(DIR, "tests"), { recursive: true });
 const pkg = {
 	name: NAME,
 	version: "0.1.0",
-	private: true,
+	description: `${NAME} Pi extension.`,
 	type: "module",
+	main: "./src/index.ts",
+	files: ["src", "README.md", "CHANGELOG.md"],
 	keywords: ["pi-package", "pi-extension"],
-	description: `${NAME} pi extension.`,
+	license: "MIT",
+	repository: {
+		type: "git",
+		url: "git+https://github.com/zegging/pi-extension.git",
+		directory: `packages/${NAME}`,
+	},
+	publishConfig: {
+		access: "public",
+		registry: "https://registry.npmjs.org/",
+	},
 	scripts: {
 		clean: "echo 'nothing to clean'",
 		build: "echo 'nothing to build'",
@@ -50,13 +51,22 @@ const pkg = {
 		test: "vitest run",
 		"test:watch": "vitest",
 		"test:coverage": "vitest run --coverage",
+		prepublishOnly: "npm run check && npm test",
 	},
 	pi: {
 		extensions: ["./src/index.ts"],
 	},
 	peerDependencies: {
-		"@earendil-works/pi-ai": "*",
 		"@earendil-works/pi-coding-agent": "*",
+		typebox: "*",
+	},
+	devDependencies: {
+		"@types/node": "^22.10.0",
+		typescript: "^5.7.3",
+		vitest: "^2.1.9",
+	},
+	engines: {
+		node: ">=22.19.0",
 	},
 };
 writeFileSync(resolve(DIR, "package.json"), JSON.stringify(pkg, null, 2) + "\n");
@@ -95,16 +105,11 @@ export default defineConfig({
 
 writeFileSync(
 	resolve(DIR, "src/index.ts"),
-	`import type { PiExtension } from "@earendil-works/pi-coding-agent";
+	`import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
-const extension: PiExtension = {
-\tname: "${NAME}",
-\tasync start(pi) {
-\t\t// TODO: register providers, commands, hooks, tools here.
-\t},
-};
-
-export default extension;
+export default function ${toIdentifier(NAME)}(pi: ExtensionAPI) {
+\t// TODO: register providers, commands, hooks, tools here.
+}
 `,
 );
 
@@ -116,33 +121,23 @@ Pi extension: **${NAME}**.
 
 ## Install
 
-From this monorepo during development:
+\`\`\`bash
+pi install npm:${NAME}
+pi install npm:${NAME}@0.1.0
+\`\`\`
+
+Local development from this monorepo:
 
 \`\`\`bash
 pi -e ./packages/${NAME}
 \`\`\`
 
-As a git-distributed pi package (pinned to a release tag):
-
-\`\`\`bash
-# always-current release
-pi install git:gitlab.qunhequnhe.com/huiti/pi-extension@${NAME}@latest
-
-# pinned version (reproducible)
-pi install git:gitlab.qunhequnhe.com/huiti/pi-extension@${NAME}@v0.1.0
-\`\`\`
-
-Tags are namespaced as \`<pkg>@vX.Y.Z\` so multiple packages coexist in one repo.
-Re-run \`pi install ...@${NAME}@latest\` to pick up new releases without editing config.
-
 ## Release
 
 \`\`\`bash
-# from the monorepo root:
-npm run release -- ${NAME} patch
+npm run publish:dry -- ${NAME}
+npm run publish -- ${NAME}
 \`\`\`
-
-See \`../../README.md\` for the full release workflow.
 `,
 );
 
@@ -175,6 +170,10 @@ writeFileSync(resolve(DIR, "tests/.gitkeep"), "");
 console.log(`\n✓ Created packages/${NAME}/`);
 console.log("\nNext steps:");
 console.log(`  1. Edit packages/${NAME}/src/index.ts`);
-console.log("  2. npm install                       # link the new workspace");
-console.log(`  3. pi -e ./packages/${NAME}          # test locally`);
-console.log(`  4. npm run release -- ${NAME} patch  # when ready to tag`);
+console.log("  2. npm install");
+console.log(`  3. pi -e ./packages/${NAME}`);
+console.log(`  4. npm run publish:dry -- ${NAME}`);
+
+function toIdentifier(name) {
+	return name.replace(/(^|-)\w/g, (part) => part.replace("-", "").toUpperCase()).replace(/^\d/, "_$&");
+}

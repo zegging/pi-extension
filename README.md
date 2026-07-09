@@ -1,26 +1,25 @@
 # pi-extension
 
-Monorepo of internal [pi](https://pi.dev/) extensions maintained by Qunhe.
+Monorepo of [pi](https://pi.dev/) extension packages.
 
-Each package under `packages/*` is an **independently versioned pi extension**
-distributed via **git tags** (no npm publish). Consumers install via
-`pi install git:...@<pkg>@<tag>`.
+Each package under `packages/*` is an independently versioned Pi package intended for npm distribution. The root repo is private-to-publishing (`private: true`); individual packages decide whether they are publishable.
 
 ## Layout
 
-```
+```text
 pi-extension/
 ├── package.json          # npm workspaces = packages/*
 ├── tsconfig.base.json    # shared strict TS config
-├── tsconfig.json         # root type-check (references all packages)
-├── vitest.config.ts      # root test runner (each pkg can override)
+├── tsconfig.json         # root type-check
+├── vitest.config.ts      # root test runner
 ├── scripts/
-│   ├── release.mjs       # bump + tag + push one package
+│   ├── publish.mjs       # npm pack validation + npm publish
+│   ├── release.mjs       # version/changelog/tag helper
 │   └── new-package.mjs   # scaffold a new packages/<name>
 └── packages/
-    └── <name>/           # one pi extension per directory
-        ├── package.json  # private, "pi.extensions", peerDeps on pi
-        ├── tsconfig.json # extends ../../tsconfig.base.json
+    └── <name>/           # one Pi extension package per directory
+        ├── package.json  # npm metadata + "pi.extensions"
+        ├── tsconfig.json
         ├── vitest.config.ts
         ├── README.md
         ├── CHANGELOG.md
@@ -30,70 +29,80 @@ pi-extension/
 
 ## Design decisions
 
-- **Multi-package isolation** — mirrors `~/project/pi`'s `packages/*` workspace
-  layout. Each package has its own `package.json`, `tsconfig.json`,
-  `vitest.config.ts`, `CHANGELOG.md`, and version number. The root only wires
-  workspaces, shared TS config, and release tooling.
-- **Git-tag releases (no npm publish)** — mirrors `~/project/qunhe-provider`.
-  Every package is `"private": true`; the git tag *is* the release marker.
-- **Scoped tag names** — because a single repo hosts many packages, tags are
-  namespaced: `<pkg>@vX.Y.Z` (immutable) and `<pkg>@latest` (force-moved on
-  each release). This prevents `v0.1.3` collisions between packages.
-- **Peer-dep on pi** — packages depend on `@earendil-works/pi-ai` and
-  `@earendil-works/pi-coding-agent` as `peerDependencies` (`"*"`), so the pi
-  runtime provides the API and versions never conflict.
+- **Workspace isolation** — mirrors `~/project/pi`'s `packages/*` layout. Each package owns its version, changelog, tests, and npm metadata.
+- **npm-first distribution** — consumers install with `pi install npm:<package>@<version>`.
+- **No bundled Pi core packages** — packages that import Pi APIs declare Pi packages and `typebox` as `peerDependencies` with `"*"`, following Pi package docs.
+- **Reviewable local smoke files** — real cluster request files live under `requests/` and are ignored by `requests/.gitignore`.
+
+## Local development
+
+```bash
+npm install
+npm test
+npm run check
+
+# run one extension from source
+pi -e ./packages/pi-elasticsearch-http
+```
 
 ## Adding a new extension
 
 ```bash
 npm run new -- my-extension
 npm install
-# edit packages/my-extension/src/index.ts
-pi -e ./packages/my-extension          # local dev
+pi -e ./packages/my-extension
 ```
 
-## Releasing
+Before publishing, fill in the generated package metadata (`description`, `repository`, `license`, etc.).
+
+## Publishing
+
+Validate package contents without publishing:
 
 ```bash
-# from the monorepo root, working tree must be clean:
-npm run release -- <pkg> patch     # or: minor | major | 1.2.3
+npm run publish:dry
+# or one package only
+npm run publish:dry -- pi-elasticsearch-http
 ```
 
-The script (see `scripts/release.mjs`) does — for that one package only:
-
-1. Assert the working directory is clean.
-2. Bump `packages/<pkg>/package.json` version.
-3. Promote `## [Unreleased]` → `## [x.y.z] — <date>` in that package's `CHANGELOG.md`.
-4. Run `npm run check` + `npm test` inside that package.
-5. Commit + create tag `<pkg>@vX.Y.Z` + force-move `<pkg>@latest`.
-6. Insert a fresh `## [Unreleased]` scaffold and commit it.
-7. Push branch + version tag + latest tag.
-
-No CI is triggered, no npm registry is contacted.
-
-## Installing a released extension
+Publish public npm packages that are not already published at their current version:
 
 ```bash
-# always-current release for a specific package
-pi install git:gitlab.qunhequnhe.com/huiti/pi-extension@<pkg>@latest
+npm run publish
+# or one package only
+npm run publish -- pi-elasticsearch-http
+```
 
-# pinned version (reproducible setups)
-pi install git:gitlab.qunhequnhe.com/huiti/pi-extension@<pkg>@v0.1.0
+The publish script is modeled on `~/project/pi/scripts/publish.mjs`:
 
-# untagged master (bleeding edge)
-pi install git:gitlab.qunhequnhe.com/huiti/pi-extension
+1. Discover publishable packages under `packages/*` (`private !== true`).
+2. Validate required npm/Pi package metadata.
+3. Check whether `<name>@<version>` is already on npm.
+4. Run `npm pack --dry-run --ignore-scripts --json` and show packed files.
+5. On real publish, run `npm publish --access public --provenance --ignore-scripts`.
 
-# SSH (avoids credential prompts)
-pi install git:git@gitlab.qunhequnhe.com:huiti/pi-extension@<pkg>@latest
+## Installing published extensions
+
+```bash
+# latest npm version
+pi install npm:pi-elasticsearch-http
+
+# pinned npm version
+pi install npm:pi-elasticsearch-http@0.1.0
+
+# try without installing permanently
+pi -e npm:pi-elasticsearch-http@0.1.0
 ```
 
 ## Root scripts
 
-| Command                           | What it does                                          |
-| --------------------------------- | ----------------------------------------------------- |
-| `npm run clean`                   | `clean` in every workspace that defines it            |
-| `npm run build`                   | `build` in every workspace that defines it            |
-| `npm run check`                   | per-package `check` + root-level `tsc --noEmit`       |
-| `npm run test`                    | `vitest` per workspace (each package owns its config) |
-| `npm run new -- <name>`           | scaffold `packages/<name>/`                           |
-| `npm run release -- <pkg> <bump>` | tag + push one package                                |
+| Command | What it does |
+|---|---|
+| `npm run clean` | `clean` in every workspace that defines it |
+| `npm run build` | `build` in every workspace that defines it |
+| `npm run check` | per-package `check` + root-level `tsc --noEmit` |
+| `npm run test` | `vitest` per workspace |
+| `npm run new -- <name>` | scaffold `packages/<name>/` |
+| `npm run publish:dry [-- <pkg>]` | validate npm package contents |
+| `npm run publish [-- <pkg>]` | publish package(s) to npm |
+| `npm run release -- <pkg> <bump>` | version/changelog/tag helper for one package |

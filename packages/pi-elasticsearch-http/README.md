@@ -4,18 +4,23 @@ A lightweight Pi extension for executing reviewable, reproducible Elasticsearch 
 
 Primary target: self-hosted Elasticsearch 6.x.
 
-## Install / dev
+## Install
 
 ```bash
-# from the monorepo root
-pi -e ./packages/pi-elasticsearch-http
+# latest
+pi install npm:pi-elasticsearch-http
+
+# pinned
+pi install npm:pi-elasticsearch-http@0.1.0
+
+# try without installing permanently
+pi -e npm:pi-elasticsearch-http@0.1.0
 ```
 
-Git-distributed package:
+Local development from this monorepo:
 
 ```bash
-pi install git:gitlab.qunhequnhe.com/huiti/pi-extension@pi-elasticsearch-http@latest
-pi install git:gitlab.qunhequnhe.com/huiti/pi-extension@pi-elasticsearch-http@v0.1.0
+pi -e ./packages/pi-elasticsearch-http
 ```
 
 ## Configure
@@ -97,7 +102,7 @@ Example tool args:
 - Requests may only target the selected profile origin.
 - These request headers are forbidden: `Authorization`, `Proxy-Authorization`, `Host`, `Content-Length`, `Connection`, `Transfer-Encoding`.
 - Read-only allowlist runs without confirmation: `GET`, `HEAD`, `POST */_search`, `*/_msearch`, `*/_count`, `*/_validate/query`, `*/_explain/*`.
-- Writes and high-risk endpoints require Yes/No confirmation in interactive modes.
+- Writes and high-risk endpoints require interactive confirmation.
 - Non-interactive modes reject requests requiring confirmation.
 - Redirects are not followed (`manual`).
 - No retries are performed.

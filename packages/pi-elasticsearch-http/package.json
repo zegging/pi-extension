@@ -1,10 +1,36 @@
 {
   "name": "pi-elasticsearch-http",
   "version": "0.1.0",
-  "private": true,
-  "type": "module",
-  "keywords": ["pi-package", "pi-extension", "elasticsearch", "http"],
   "description": "Pi extension for safe, reproducible Elasticsearch HTTP requests from .http/.rest files or raw HTTP text.",
+  "type": "module",
+  "main": "./src/index.ts",
+  "files": [
+    "src",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "elasticsearch",
+    "http"
+  ],
+  "author": "zegging",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zegging/pi-extension.git",
+    "directory": "packages/pi-elasticsearch-http"
+  },
+  "bugs": {
+    "url": "https://github.com/zegging/pi-extension/issues"
+  },
+  "homepage": "https://github.com/zegging/pi-extension/tree/main/packages/pi-elasticsearch-http#readme",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "scripts": {
     "clean": "echo 'nothing to clean'",
     "build": "echo 'nothing to build'",
@@ -12,21 +38,24 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "release:patch": "node ../../scripts/release.mjs pi-elasticsearch-http patch",
-    "release:minor": "node ../../scripts/release.mjs pi-elasticsearch-http minor",
-    "release:major": "node ../../scripts/release.mjs pi-elasticsearch-http major"
+    "prepublishOnly": "npm run check && npm test"
   },
   "pi": {
-    "extensions": ["./src/index.ts"]
+    "extensions": [
+      "./src/index.ts"
+    ]
   },
   "peerDependencies": {
-    "@earendil-works/pi-ai": "*",
     "@earendil-works/pi-coding-agent": "*",
-    "@earendil-works/pi-tui": "*"
+    "@earendil-works/pi-tui": "*",
+    "typebox": "*"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
     "typescript": "^5.7.3",
     "vitest": "^2.1.9"
+  },
+  "engines": {
+    "node": ">=22.19.0"
   }
 }
