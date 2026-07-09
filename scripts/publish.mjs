@@ -18,6 +18,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { basename, join } from "node:path";
 
+const NPM_REGISTRY = "https://registry.npmjs.org/";
 const dryRun = process.argv.includes("--dry-run");
 const packageFilter = process.argv.slice(2).find((arg) => arg !== "--dry-run");
 const unknownArgs = process.argv.slice(2).filter((arg) => arg !== "--dry-run" && arg !== packageFilter);
@@ -92,7 +93,7 @@ function validatePack(directory) {
 }
 
 function isPublished(name, version) {
-	const result = spawnSync(commandForPlatform("npm"), ["view", `${name}@${version}`, "version", "--json"], {
+	const result = spawnSync(commandForPlatform("npm"), ["view", `${name}@${version}`, "version", "--json", "--registry", NPM_REGISTRY], {
 		encoding: "utf8",
 		stdio: ["inherit", "pipe", "pipe"],
 	});
@@ -134,6 +135,6 @@ for (const pkg of states) {
 		console.log(`Skipping ${name}@${version}: already published\n`);
 		continue;
 	}
-	run("npm", ["publish", "--access", "public", "--provenance", "--ignore-scripts"], { cwd: pkg.directory });
+	run("npm", ["publish", "--access", "public", "--provenance", "--ignore-scripts", "--registry", NPM_REGISTRY], { cwd: pkg.directory });
 	console.log();
 }
