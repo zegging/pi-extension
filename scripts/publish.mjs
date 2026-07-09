@@ -83,8 +83,17 @@ function validatePackageJson(pkg) {
 }
 
 function validatePack(directory) {
-	const result = run("npm", ["pack", "--dry-run", "--ignore-scripts", "--json"], { capture: true, cwd: directory });
-	const packed = JSON.parse(result.stdout)[0];
+	const result = run("npm", ["pack", ".", "--dry-run", "--ignore-scripts", "--json"], { capture: true, cwd: directory });
+	let parsed;
+	try {
+		parsed = JSON.parse(result.stdout);
+	} catch (error) {
+		throw new Error(`Failed to parse npm pack --json output for ${directory}.\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`);
+	}
+	const packed = Array.isArray(parsed) ? parsed[0] : parsed;
+	if (!packed || typeof packed !== "object" || !Array.isArray(packed.files)) {
+		throw new Error(`Unexpected npm pack --json output for ${directory}.\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`);
+	}
 	console.log(`  ${packed.filename}: ${packed.files.length} files, ${packed.size} bytes packed, ${packed.unpackedSize} bytes unpacked`);
 	for (const file of packed.files) {
 		console.log(`    - ${file.path}`);
