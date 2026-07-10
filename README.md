@@ -55,31 +55,33 @@ pi -e ./packages/my-extension
 
 Before publishing, fill in the generated package metadata (`description`, `repository`, `license`, etc.).
 
-## Publishing
+## Release and publishing
 
-Validate package contents without publishing:
+Canonical release path for `pi-elasticsearch-http`:
 
 ```bash
-npm run publish:dry
-# or one package only
-npm run publish:dry -- pi-elasticsearch-http
+# choose patch | minor | major | explicit x.y.z
+npm run release -- pi-elasticsearch-http minor
 ```
 
-Publish public npm packages that are not already published at their current version:
+The release helper bumps the package version, promotes `CHANGELOG.md`, runs package `check` / `test` / `npm pack --dry-run`, creates the release commit and tag (`pi-elasticsearch-http@vX.Y.Z`), opens the next `[Unreleased]` section, then pushes the branch and tag.
+
+Pushing the tag triggers `.github/workflows/publish-npm.yml`, which publishes `@zegging/pi-elasticsearch-http` to npm through Trusted Publishing. Do not run local `npm publish` for the normal path.
+
+Verify the published version after GitHub Actions completes:
 
 ```bash
-npm run publish
-# or one package only
+npm view @zegging/pi-elasticsearch-http version --registry https://registry.npmjs.org/
+```
+
+Manual fallback only when intentionally bypassing GitHub Actions / Trusted Publishing:
+
+```bash
+npm run publish:dry -- pi-elasticsearch-http
 npm run publish -- pi-elasticsearch-http
 ```
 
-The publish script is modeled on `~/project/pi/scripts/publish.mjs`:
-
-1. Discover publishable packages under `packages/*` (`private !== true`).
-2. Validate required npm/Pi package metadata.
-3. Check whether `<name>@<version>` is already on npm.
-4. Run `npm pack --dry-run --ignore-scripts --json` and show packed files.
-5. On real publish, run `npm publish --access public --provenance --ignore-scripts`.
+See `AGENTS.md` for the full maintainer/agent release checklist.
 
 ## Installing published extensions
 
@@ -88,10 +90,10 @@ The publish script is modeled on `~/project/pi/scripts/publish.mjs`:
 pi install npm:@zegging/pi-elasticsearch-http
 
 # pinned npm version
-pi install npm:@zegging/pi-elasticsearch-http@0.1.0
+pi install npm:@zegging/pi-elasticsearch-http@0.2.0
 
 # try without installing permanently
-pi -e npm:@zegging/pi-elasticsearch-http@0.1.0
+pi -e npm:@zegging/pi-elasticsearch-http@0.2.0
 ```
 
 ## Root scripts
@@ -103,6 +105,6 @@ pi -e npm:@zegging/pi-elasticsearch-http@0.1.0
 | `npm run check` | per-package `check` + root-level `tsc --noEmit` |
 | `npm run test` | `vitest` per workspace |
 | `npm run new -- <name>` | scaffold `packages/<name>/` |
-| `npm run publish:dry [-- <pkg>]` | validate npm package contents |
-| `npm run publish [-- <pkg>]` | publish package(s) to npm |
-| `npm run release -- <pkg> <bump>` | version/changelog/tag helper for one package |
+| `npm run release -- <pkg> <bump>` | preferred package release flow: version/changelog/check/test/pack/commit/tag/push |
+| `npm run publish:dry [-- <pkg>]` | validate npm package contents; manual fallback path |
+| `npm run publish [-- <pkg>]` | manually publish package(s) to npm; normally GitHub Actions publishes from tags |
