@@ -2,6 +2,7 @@ import type { ExtensionAPI, ExtensionCommandContext } from "@earendil-works/pi-c
 import { loadConfig, loadGlobalConfigForEdit, saveGlobalConfig, getGlobalConfigPath, getAuthFilePath } from "./config.ts";
 import { saveProfileSecret, removeProfileSecret } from "./auth.ts";
 import { executeHttpRequest } from "./executor.ts";
+import { formatProfileListing, loadProfileListing } from "./profiles.ts";
 import { prepareRequest } from "./request.ts";
 import type { EsHttpProfile, ParsedHttpRequest } from "./types.ts";
 
@@ -74,22 +75,8 @@ async function addProfile(ctx: ExtensionCommandContext, nameArg?: string): Promi
 }
 
 async function listProfiles(ctx: ExtensionCommandContext): Promise<void> {
-	const config = await loadGlobalConfigForEdit();
-	const names = Object.keys(config.profiles).sort();
-	if (names.length === 0) {
-		ctx.ui.notify(`No es-http profiles configured. Run /es-http add <profile>. Config: ${getGlobalConfigPath()}`, "info");
-		return;
-	}
-	ctx.ui.notify(
-		[
-			`es-http profiles (default: ${config.defaultProfile ?? "(none)"})`,
-			...names.map((name) => {
-				const p = config.profiles[name];
-				return `- ${name}${name === config.defaultProfile ? " *" : ""}: ${p.baseUrl} auth=${p.auth?.type ?? "none"} timeout=${p.timeoutMs ?? 30000}ms`;
-			}),
-		].join("\n"),
-		"info",
-	);
+	const listing = await loadProfileListing();
+	ctx.ui.notify(formatProfileListing(listing), "info");
 }
 
 async function setDefault(ctx: ExtensionCommandContext, name?: string): Promise<void> {

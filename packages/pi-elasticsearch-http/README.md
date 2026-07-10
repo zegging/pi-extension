@@ -63,9 +63,11 @@ Example global config:
 }
 ```
 
-## Tool
+## Tools
 
-`es_http` accepts exactly one of:
+### `es_http`
+
+Accepts exactly one of:
 
 ```ts
 { profile?: string; file: string; name: string; variables?: Record<string, string | number | boolean> }
@@ -94,6 +96,18 @@ Example tool args:
   "variables": { "userId": "42" }
 }
 ```
+
+### `es_http_profiles`
+
+Read-only, no parameters. Returns sanitized metadata for every configured profile so an agent can pick a profile without asking the user to reveal secrets. Output mirrors `/es-http list`:
+
+- default profile marker
+- profile name and base URL
+- auth type (`none` / `basic` / `authorization`) plus basic-auth username
+- timeout (ms)
+- profile header names (values are omitted)
+
+Basic-auth passwords and Authorization header values stored under `~/.pi/agent/es-http/auth.json` are never included in the output.
 
 ## Safety
 

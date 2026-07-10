@@ -6,12 +6,16 @@ All notable changes to `pi-elasticsearch-http` are documented here. Format follo
 ## [Unreleased]
 
 ### Added
+- `es_http_profiles` read-only tool that returns sanitized profile metadata (default profile, base URL, auth type, basic-auth username, timeout, header names) so agents can discover configured profiles without inspecting `~/.pi/agent/es-http/auth.json`.
 
 ### Changed
+- Shared profile listing/formatting between `/es-http list` and the new `es_http_profiles` tool via `src/profiles.ts`.
 
 ### Fixed
+- Confirmation preview for high-risk `es_http` requests now wraps long request lines (URLs, headers, body) instead of truncating them via `truncateToWidth`, so the exact request stays reviewable.
 
 ### Technical
+- Added regression tests for `frameConfirmLines` wrapping behaviour and for `summarizeProfiles` / `formatProfileListing` sanitization.
 
 ## [0.1.0] — 2026-07-09
 
