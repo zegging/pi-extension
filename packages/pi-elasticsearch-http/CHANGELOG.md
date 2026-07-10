@@ -3,7 +3,7 @@
 All notable changes to `pi-elasticsearch-http` are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [0.2.0] — 2026-07-10
 
 ### Added
 - `es_http_profiles` read-only tool that returns sanitized profile metadata (default profile, base URL, auth type, basic-auth username, timeout, header names) so agents can discover configured profiles without inspecting `~/.pi/agent/es-http/auth.json`.
