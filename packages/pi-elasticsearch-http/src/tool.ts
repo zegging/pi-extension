@@ -1,5 +1,5 @@
 import type { ExtensionAPI, ExtensionContext, Theme } from "@earendil-works/pi-coding-agent";
-import { Key, matchesKey, Text, truncateToWidth } from "@earendil-works/pi-tui";
+import { Key, matchesKey, Text, wrapTextWithAnsi } from "@earendil-works/pi-tui";
 import { Type } from "typebox";
 import { classifyRisk } from "./classifier.ts";
 import { loadConfig } from "./config.ts";
@@ -215,13 +215,18 @@ function optionLine(value: "Yes" | "No", selected: "Yes" | "No", theme: Theme): 
 	return selected === value ? theme.fg("accent", `→ ${value}`) : `  ${theme.fg("text", value)}`;
 }
 
-function frameConfirmLines(theme: Theme, lines: string[], width: number): string[] {
+export function frameConfirmLines(theme: Theme, lines: string[], width: number): string[] {
 	const border = theme.fg("border", "─".repeat(width));
 	const contentWidth = Math.max(1, width - 2);
+	const wrapped = lines.flatMap((line) => {
+		if (line === "") return [""];
+		const pieces = wrapTextWithAnsi(line, contentWidth);
+		return pieces.length > 0 ? pieces : [""];
+	});
 	return [
 		border,
 		"",
-		...lines.map((line) => ` ${truncateToWidth(line, contentWidth)}`),
+		...wrapped.map((line) => ` ${line}`),
 		"",
 		border,
 	];
