@@ -1,4 +1,4 @@
-import type { ExtensionAPI, ExtensionContext, Theme } from "@earendil-works/pi-coding-agent";
+import type { AgentToolResult, ExtensionAPI, ExtensionContext, Theme, ToolRenderResultOptions } from "@earendil-works/pi-coding-agent";
 import { Key, matchesKey, Text, wrapTextWithAnsi } from "@earendil-works/pi-tui";
 import { Type } from "typebox";
 import { classifyRisk } from "./classifier.ts";
@@ -62,6 +62,11 @@ export function registerEsHttpTool(pi: ExtensionAPI): void {
 		executionMode: "sequential",
 		renderCall(args, theme) {
 			return new Text(theme.fg("toolTitle", theme.bold(`es_http ${formatCallArgs(args as EsHttpInput)}`)), 0, 0);
+		},
+		renderResult(result, options, theme, context) {
+			const text = (context.lastComponent as Text | undefined) ?? new Text("", 0, 0);
+			text.setText(formatEsHttpResultForDisplay(result, options, theme, context.isError));
+			return text;
 		},
 		async execute(_toolCallId, params, signal, _onUpdate, ctx) {
 			return enqueueEsHttp(signal, async () => {
@@ -243,6 +248,34 @@ function formatHttpRequestPreviewLines(req: PreparedHttpRequest, theme: Theme): 
 
 function redactLines(lines: string[]): string[] {
 	return redactSecrets(lines.join("\n"), []).split("\n");
+}
+
+export function formatEsHttpResultForDisplay(
+	result: AgentToolResult<unknown>,
+	options: Pick<ToolRenderResultOptions, "expanded">,
+	theme: Theme,
+	isError = false,
+): string {
+	const output = getTextContent(result);
+	if (options.expanded || isError) {
+		return output ? `\n${output.split("\n").map((line) => theme.fg("toolOutput", line)).join("\n")}` : "";
+	}
+	const lines = output.split("\n");
+	const statusLine = lines.find((line) => line.trim().length > 0) ?? "es_http completed";
+	const truncationLine = [...lines].reverse().find((line) => line.startsWith("[Response truncated:"));
+	const hiddenLine = theme.fg("muted", "[es_http response hidden. Press ctrl+o to expand]");
+	return [
+		"",
+		theme.fg("toolOutput", statusLine),
+		...(truncationLine ? [theme.fg("warning", truncationLine)] : []),
+		hiddenLine,
+	].join("\n");
+}
+
+function getTextContent(result: AgentToolResult<unknown>): string {
+	return result.content
+		.flatMap((item) => (item.type === "text" ? item.text.split("\n") : [`[${item.type} content omitted]`]))
+		.join("\n");
 }
 
 function formatCallArgs(input: EsHttpInput): string {

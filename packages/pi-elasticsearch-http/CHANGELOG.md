@@ -13,9 +13,10 @@ All notable changes to `pi-elasticsearch-http` are documented here. Format follo
 
 ### Fixed
 - Confirmation preview for high-risk `es_http` requests now wraps long request lines (URLs, headers, body) instead of truncating them via `truncateToWidth`, so the exact request stays reviewable.
+- `es_http` tool output now honors Pi's `ctrl+o` tool-output collapse/expand toggle: collapsed mode shows the HTTP status and truncation notice, while expanded mode shows the full formatted response.
 
 ### Technical
-- Added regression tests for `frameConfirmLines` wrapping behaviour and for `summarizeProfiles` / `formatProfileListing` sanitization.
+- Added regression tests for `frameConfirmLines` wrapping behaviour, `es_http` collapsed/expanded result rendering, and `summarizeProfiles` / `formatProfileListing` sanitization.
 
 ## [0.1.0] — 2026-07-09
 
