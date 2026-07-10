@@ -90,7 +90,7 @@ function validatePack(directory) {
 	} catch (error) {
 		throw new Error(`Failed to parse npm pack --json output for ${directory}.\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`);
 	}
-	const packed = Array.isArray(parsed) ? parsed[0] : parsed;
+	const packed = normalizeNpmPackJson(parsed);
 	if (!packed || typeof packed !== "object" || !Array.isArray(packed.files)) {
 		throw new Error(`Unexpected npm pack --json output for ${directory}.\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`);
 	}
@@ -99,6 +99,17 @@ function validatePack(directory) {
 		console.log(`    - ${file.path}`);
 	}
 	return packed;
+}
+
+function normalizeNpmPackJson(parsed) {
+	if (Array.isArray(parsed)) return parsed[0];
+	if (!parsed || typeof parsed !== "object") return undefined;
+	if (Array.isArray(parsed.files)) return parsed;
+
+	// npm versions differ here: some return `[packument]`, while newer npm can
+	// return `{ "<package-name>": packument }`. Accept either to keep CI stable.
+	const values = Object.values(parsed);
+	return values.find((value) => value && typeof value === "object" && Array.isArray(value.files));
 }
 
 function isPublished(name, version) {

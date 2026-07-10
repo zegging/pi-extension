@@ -11,10 +11,10 @@ Primary target: self-hosted Elasticsearch 6.x.
 pi install npm:@zegging/pi-elasticsearch-http
 
 # pinned
-pi install npm:@zegging/pi-elasticsearch-http@0.2.0
+pi install npm:@zegging/pi-elasticsearch-http@0.1.1
 
 # try without installing permanently
-pi -e npm:@zegging/pi-elasticsearch-http@0.2.0
+pi -e npm:@zegging/pi-elasticsearch-http@0.1.1
 ```
 
 Local development from this monorepo:

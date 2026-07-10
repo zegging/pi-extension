@@ -90,10 +90,10 @@ See `AGENTS.md` for the full maintainer/agent release checklist.
 pi install npm:@zegging/pi-elasticsearch-http
 
 # pinned npm version
-pi install npm:@zegging/pi-elasticsearch-http@0.2.0
+pi install npm:@zegging/pi-elasticsearch-http@0.1.1
 
 # try without installing permanently
-pi -e npm:@zegging/pi-elasticsearch-http@0.2.0
+pi -e npm:@zegging/pi-elasticsearch-http@0.1.1
 ```
 
 ## Root scripts

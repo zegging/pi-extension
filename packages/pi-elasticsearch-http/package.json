@@ -1,6 +1,6 @@
 {
   "name": "@zegging/pi-elasticsearch-http",
-  "version": "0.2.0",
+  "version": "0.1.1",
   "description": "Pi extension for safe, reproducible Elasticsearch HTTP requests from .http/.rest files or raw HTTP text.",
   "type": "module",
   "main": "./src/index.ts",
