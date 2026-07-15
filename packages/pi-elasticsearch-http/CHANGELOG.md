@@ -3,6 +3,16 @@
 All notable changes to `pi-elasticsearch-http` are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Added
+
+### Changed
+
+### Fixed
+
+### Technical
+
 ## [0.1.2] — 2026-07-15
 
 ### Added
