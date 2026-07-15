@@ -1,48 +1,18 @@
 import type { AgentToolResult, ExtensionAPI, ExtensionContext, Theme, ToolRenderResultOptions } from "@earendil-works/pi-coding-agent";
 import { Key, matchesKey, Text, wrapTextWithAnsi } from "@earendil-works/pi-tui";
-import { Type } from "typebox";
 import { classifyRisk } from "./classifier.ts";
 import { loadConfig } from "./config.ts";
 import { EsHttpError, redactSecrets } from "./errors.ts";
 import { executeHttpRequest, maybeWriteFullOutput, enqueueEsHttp } from "./executor.ts";
 import { readWorkspaceHttpFile } from "./files.ts";
 import { parseHttpDocument, listRequestNames } from "./parser.ts";
+import { EsHttpParameters, normalizeEsHttpInput, type EsHttpRawParameters } from "./parameters.ts";
 import { prepareRequest } from "./request.ts";
 import { formatResponseForContext } from "./response.ts";
-import type { EsHttpInput, LoadedConfig, ParsedHttpRequest, PreparedHttpRequest, RiskClassification, Variables } from "./types.ts";
+import type { EsHttpInput, LoadedConfig, ParsedHttpRequest, PreparedHttpRequest, RiskClassification } from "./types.ts";
 import { isProtectedHeader, substituteRequest } from "./variables.ts";
 
-const VariableValue = Type.Union([Type.String(), Type.Number(), Type.Boolean()]);
-const VariablesSchema = Type.Optional(Type.Record(Type.String(), VariableValue));
-
-export const EsHttpParameters = Type.Union([
-	Type.Object(
-		{
-			profile: Type.Optional(Type.String({ description: "Profile name from ~/.pi/agent/es-http/config.json" })),
-			file: Type.String({ description: "Workspace-relative .http/.rest file path" }),
-			name: Type.String({ description: "# @name request to execute" }),
-			variables: VariablesSchema,
-		},
-		{ additionalProperties: false },
-	),
-	Type.Object(
-		{
-			profile: Type.Optional(Type.String()),
-			file: Type.String({ description: "Workspace-relative .http/.rest file path" }),
-			all: Type.Literal(true, { description: "Execute all requests in the file sequentially" }),
-			variables: VariablesSchema,
-		},
-		{ additionalProperties: false },
-	),
-	Type.Object(
-		{
-			profile: Type.Optional(Type.String()),
-			raw: Type.String({ description: "Raw HTTP text containing exactly one request" }),
-			variables: VariablesSchema,
-		},
-		{ additionalProperties: false },
-	),
-]);
+export { EsHttpParameters } from "./parameters.ts";
 
 export function registerEsHttpTool(pi: ExtensionAPI): void {
 	pi.registerTool({
@@ -61,7 +31,7 @@ export function registerEsHttpTool(pi: ExtensionAPI): void {
 		parameters: EsHttpParameters,
 		executionMode: "sequential",
 		renderCall(args, theme) {
-			return new Text(theme.fg("toolTitle", theme.bold(`es_http ${formatCallArgs(args as EsHttpInput)}`)), 0, 0);
+			return new Text(theme.fg("toolTitle", theme.bold(`es_http ${formatCallArgs(args as EsHttpRawParameters)}`)), 0, 0);
 		},
 		renderResult(result, options, theme, context) {
 			const text = (context.lastComponent as Text | undefined) ?? new Text("", 0, 0);
@@ -70,7 +40,7 @@ export function registerEsHttpTool(pi: ExtensionAPI): void {
 		},
 		async execute(_toolCallId, params, signal, _onUpdate, ctx) {
 			return enqueueEsHttp(signal, async () => {
-				const input = params as EsHttpInput;
+				const input = normalizeEsHttpInput(params as EsHttpRawParameters);
 				const result = await runEsHttp(input, ctx, signal);
 				return { content: [{ type: "text", text: result }], details: {} };
 			});
@@ -278,16 +248,19 @@ function getTextContent(result: AgentToolResult<unknown>): string {
 		.join("\n");
 }
 
-function formatCallArgs(input: EsHttpInput): string {
+function formatCallArgs(input: EsHttpRawParameters): string {
 	const profile = input.profile ? `profile=${input.profile} ` : "";
-	if ("raw" in input) {
+	if (typeof input.raw === "string") {
 		return `${profile}raw=${JSON.stringify(previewInline(input.raw))}`;
 	}
-	if ("all" in input && input.all) {
-		return `${profile}file=${JSON.stringify(input.file)} all=true`;
+	if (typeof input.file === "string") {
+		if (input.all === true) return `${profile}file=${JSON.stringify(input.file)} all=true`;
+		if (typeof input.name === "string") {
+			return `${profile}file=${JSON.stringify(input.file)} name=${JSON.stringify(input.name)}`;
+		}
+		return `${profile}file=${JSON.stringify(input.file)}`;
 	}
-	if (!("name" in input)) return `${profile}file=${JSON.stringify(input.file)}`;
-	return `${profile}file=${JSON.stringify(input.file)} name=${JSON.stringify(input.name)}`;
+	return `${profile}(no mode)`;
 }
 
 function previewInline(text: string): string {

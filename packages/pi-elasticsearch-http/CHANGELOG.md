@@ -8,10 +8,13 @@ All notable changes to `pi-elasticsearch-http` are documented here. Format follo
 ### Added
 
 ### Changed
+- `es_http` tool parameter schema is now a single flat `Type.Object` with all fields optional, and the three-way `{file,name} | {file,all} | {raw}` exclusivity is enforced at runtime in a new `normalizeEsHttpInput` helper (`src/parameters.ts`). Public tool behavior and accepted inputs are unchanged; the exported `EsHttpParameters` symbol is preserved for backward compatibility (re-exported from `src/tool.ts`).
 
 ### Fixed
+- `es_http` is now actually invokable by LLM tool calling. The previous root-level `Type.Union` schema serialized to JSON Schema `{ anyOf: [...] }` at the root, which Anthropic tool `input_schema` and OpenAI function `parameters` both reject (Anthropic: `input_schema does not support oneOf, allOf, or anyOf at the top level`). The pi harness silently degraded the schema to an empty object, hiding every field name from the model and making every call arrive as `{}`, which then failed runtime validation with `must have required properties file, name`. Flattening the root schema restores field visibility for tool-calling models.
 
 ### Technical
+- Added `tests/parameters.test.ts` covering the three valid invocation modes and six mutual-exclusion / missing-field rejection cases, plus empty-string handling.
 
 ## [0.1.1] — 2026-07-10
 
