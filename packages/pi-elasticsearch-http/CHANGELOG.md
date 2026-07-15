@@ -15,6 +15,7 @@ All notable changes to `pi-elasticsearch-http` are documented here. Format follo
 
 ### Technical
 - Added `tests/parameters.test.ts` covering the three valid invocation modes and six mutual-exclusion / missing-field rejection cases, plus empty-string handling.
+- Added a regression guard in `tests/parameters.test.ts` that inspects the compiled `EsHttpParameters` JSON Schema and fails if the root schema ever regains `anyOf`/`oneOf`/`allOf`, loses `type: "object"`, loses `additionalProperties: false`, or drops any of the documented invocation-mode fields (`profile`, `file`, `name`, `all`, `raw`, `variables`).
 
 ## [0.1.1] — 2026-07-10
 

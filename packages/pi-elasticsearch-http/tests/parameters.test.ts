@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalizeEsHttpInput, type EsHttpRawParameters } from "../src/parameters.ts";
+import { EsHttpParameters, normalizeEsHttpInput, type EsHttpRawParameters } from "../src/parameters.ts";
 import { EsHttpError, isEsHttpError } from "../src/errors.ts";
 
 function expectParseError(input: EsHttpRawParameters, matcher: string | RegExp): void {
@@ -83,5 +83,50 @@ describe("normalizeEsHttpInput", () => {
 	it("treats empty-string file/name/raw as missing", () => {
 		expectParseError({ file: "", name: "" }, /Missing required parameters/);
 		expectParseError({ raw: "" }, /Missing required parameters/);
+	});
+});
+
+describe("EsHttpParameters JSON Schema shape (regression guard)", () => {
+	// TypeBox stores the JSON Schema representation directly on the returned
+	// value, so we can inspect the exact shape that will be sent to LLM
+	// tool calling. This guard exists because:
+	//
+	//   - Anthropic tool `input_schema` rejects root-level anyOf/oneOf/allOf
+	//     with `input_schema does not support oneOf, allOf, or anyOf at the
+	//     top level` (anthropics/claude-code#5973).
+	//   - OpenAI function calling requires root `type: "object"`.
+	//   - When the root is a Union, the pi harness serializes the schema in a
+	//     way that hides every field name from the LLM, so every es_http tool
+	//     call arrives as `{}` and fails runtime validation with
+	//     `must have required properties file, name`.
+	//
+	// If any assertion here starts failing, do NOT relax the assertions.
+	// Flatten the root schema back to a single `Type.Object({...})` and enforce
+	// exclusive-mode invariants at runtime via `normalizeEsHttpInput`.
+	const schema = EsHttpParameters as unknown as {
+		type?: string;
+		anyOf?: unknown;
+		oneOf?: unknown;
+		allOf?: unknown;
+		additionalProperties?: unknown;
+		properties?: Record<string, unknown>;
+	};
+
+	it("has root type=object so LLM tool calling can see field names", () => {
+		expect(schema.type).toBe("object");
+		expect(schema.anyOf).toBeUndefined();
+		expect(schema.oneOf).toBeUndefined();
+		expect(schema.allOf).toBeUndefined();
+	});
+
+	it("forbids extra fields via additionalProperties=false", () => {
+		expect(schema.additionalProperties).toBe(false);
+	});
+
+	it("exposes every documented invocation-mode field to LLM tool calling", () => {
+		expect(schema.properties).toBeDefined();
+		for (const field of ["profile", "file", "name", "all", "raw", "variables"] as const) {
+			expect(schema.properties, `missing property: ${field}`).toHaveProperty(field);
+		}
 	});
 });
