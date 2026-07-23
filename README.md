@@ -57,28 +57,109 @@ Before publishing, fill in the generated package metadata (`description`, `repos
 
 ## Release and publishing
 
-Canonical release path for `pi-elasticsearch-http`:
+All publishing commands in this section target the official npm registry:
+
+```text
+https://registry.npmjs.org/
+```
+
+### First publication of a new npm package
+
+A package cannot normally use npm Trusted Publishing until it exists on npm and its Trusted Publisher has been configured. The first version therefore needs one authenticated maintainer publication.
+
+1. Finish the package metadata, tests, README, and `[Unreleased]` changelog. Ensure `package.json` contains:
+
+   ```json
+   {
+     "publishConfig": {
+       "access": "public",
+       "registry": "https://registry.npmjs.org/"
+     }
+   }
+   ```
+
+2. Run the repository checks and inspect the package contents:
+
+   ```bash
+   npm test
+   npm run check
+   npm pack --dry-run --ignore-scripts --workspace <npm-package-name>
+   ```
+
+3. Commit the implementation. For an initial `0.1.0` release, a new package may be staged at `0.0.0`, then released with:
+
+   ```bash
+   npm run release -- <package-directory> minor
+   ```
+
+   The helper creates and pushes `<package-directory>@v0.1.0`. The first tag workflow may fail to publish with npm `E404` because Trusted Publishing is not configured yet; this does not invalidate the release commit or tag.
+
+4. Authenticate directly with the official npm registry. Complete browser authentication and 2FA locally—never paste the OTP, access token, `.npmrc`, or temporary authentication URL into documentation, issues, logs, or chat:
+
+   ```bash
+   npm login --auth-type=web --registry https://registry.npmjs.org/
+   npm whoami --registry https://registry.npmjs.org/
+   ```
+
+5. Publish from the **package directory**, not the private monorepo root:
+
+   ```bash
+   cd packages/<package-directory>
+   npm publish --access public --ignore-scripts --registry https://registry.npmjs.org/
+   ```
+
+6. Verify the package and visibility. A new package can take a few minutes to appear in registry reads even after `npm publish` reports success:
+
+   ```bash
+   npm access get status <npm-package-name> --registry https://registry.npmjs.org/
+   npm view <npm-package-name>@0.1.0 version --registry https://registry.npmjs.org/
+   ```
+
+7. In the package settings on npmjs.com, add a GitHub Actions Trusted Publisher using non-secret repository metadata:
+
+   ```text
+   GitHub owner: <github-owner-or-organization>
+   Repository: <repository-name>
+   Workflow file: publish-npm.yml
+   Environment: <only when the workflow uses one>
+   ```
+
+   Do not store an npm token in the repository for the normal release path. Trusted Publishing uses GitHub OIDC and the workflow's `id-token: write` permission.
+
+### Subsequent releases
+
+After Trusted Publishing is configured, use the package-scoped release helper:
 
 ```bash
 # choose patch | minor | major | explicit x.y.z
-npm run release -- pi-elasticsearch-http minor
+npm run release -- <package-directory> patch
 ```
 
-The release helper bumps the package version, promotes `CHANGELOG.md`, runs package `check` / `test` / `npm pack --dry-run`, creates the release commit and tag (`pi-elasticsearch-http@vX.Y.Z`), opens the next `[Unreleased]` section, then pushes the branch and tag.
+The helper:
 
-Pushing the tag triggers `.github/workflows/publish-npm.yml`, which publishes `@zegging/pi-elasticsearch-http` to npm through Trusted Publishing. Do not run local `npm publish` for the normal path.
+1. refuses a dirty worktree;
+2. bumps only the selected package version;
+3. promotes its `[Unreleased]` changelog;
+4. runs package `check`, `test`, and `npm pack --dry-run`;
+5. creates the release commit and `<package-directory>@vX.Y.Z` tag;
+6. opens the next `[Unreleased]` section;
+7. pushes the branch and tag.
 
-Verify the published version after GitHub Actions completes:
+The tag triggers `.github/workflows/publish-npm.yml`, which publishes through npm Trusted Publishing with provenance. Ensure the workflow recognizes the package's tag pattern and maps it to the correct npm package name.
+
+Verify GitHub Actions and npm afterward:
 
 ```bash
-npm view @zegging/pi-elasticsearch-http version --registry https://registry.npmjs.org/
+gh run list --workflow publish-npm.yml --limit 5
+npm view <npm-package-name> version --registry https://registry.npmjs.org/
+npm view <npm-package-name>@<version> version --registry https://registry.npmjs.org/
 ```
 
-Manual fallback only when intentionally bypassing GitHub Actions / Trusted Publishing:
+Manual fallback is only for an intentional Trusted Publishing bypass:
 
 ```bash
-npm run publish:dry -- pi-elasticsearch-http
-npm run publish -- pi-elasticsearch-http
+npm run publish:dry -- <package-directory>
+npm run publish -- <package-directory>
 ```
 
 See `AGENTS.md` for the full maintainer/agent release checklist.
