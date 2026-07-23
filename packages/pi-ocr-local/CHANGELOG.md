@@ -3,7 +3,7 @@
 All notable changes to `@zegging/pi-ocr-local` are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [0.1.0] — 2026-07-23
 
 ### Added
 - `/ocr <absolute-image-path>` command that recognizes a local image and places the text in Pi's editor.

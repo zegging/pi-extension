@@ -1,6 +1,6 @@
 {
   "name": "@zegging/pi-ocr-local",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Local RapidOCR tools and slash commands for Pi, with a configurable backend adapter layer.",
   "type": "module",
   "main": "./src/index.ts",
