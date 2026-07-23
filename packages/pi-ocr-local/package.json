@@ -1,0 +1,64 @@
+{
+  "name": "@zegging/pi-ocr-local",
+  "version": "0.0.0",
+  "description": "Local RapidOCR tools and slash commands for Pi, with a configurable backend adapter layer.",
+  "type": "module",
+  "main": "./src/index.ts",
+  "files": [
+    "src",
+    "assets",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "pi",
+    "ocr",
+    "rapidocr",
+    "paddleocr",
+    "image-to-text"
+  ],
+  "author": "zegging",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zegging/pi-extension.git",
+    "directory": "packages/pi-ocr-local"
+  },
+  "bugs": {
+    "url": "https://github.com/zegging/pi-extension/issues"
+  },
+  "homepage": "https://github.com/zegging/pi-extension/tree/main/packages/pi-ocr-local#readme",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "scripts": {
+    "clean": "echo 'nothing to clean'",
+    "build": "echo 'nothing to build'",
+    "check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "prepublishOnly": "npm run check && npm test"
+  },
+  "pi": {
+    "extensions": [
+      "./src/index.ts"
+    ]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "typebox": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.3",
+    "vitest": "^2.1.9"
+  },
+  "engines": {
+    "node": ">=22.19.0"
+  }
+}

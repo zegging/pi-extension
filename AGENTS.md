@@ -6,7 +6,7 @@ This repository is a monorepo for Pi extension packages. Follow these notes when
 
 - Root package is private and uses npm workspaces: `packages/*`.
 - Each package is independently versioned and owns its own `package.json`, `README.md`, `CHANGELOG.md`, `src/`, and `tests/`.
-- Current public package: `packages/pi-elasticsearch-http` published as `@zegging/pi-elasticsearch-http`.
+- Packages include `packages/pi-elasticsearch-http` (`@zegging/pi-elasticsearch-http`) and `packages/pi-ocr-local` (`@zegging/pi-ocr-local`).
 
 ## Development checks
 
@@ -20,13 +20,13 @@ npm run check
 For one package:
 
 ```bash
-npm --prefix packages/pi-elasticsearch-http test
-npm --prefix packages/pi-elasticsearch-http run check
+npm --prefix packages/<package-directory> test
+npm --prefix packages/<package-directory> run check
 ```
 
 ## Release and publish workflow
 
-Preferred release flow for `pi-elasticsearch-http`:
+Preferred release flow for a package:
 
 ```bash
 # 1. Ensure worktree is clean and all intended code/docs are committed.
@@ -35,6 +35,8 @@ git status --short
 # 2. Choose semver bump: patch | minor | major | explicit x.y.z.
 # Use minor for new features/tools; patch for fixes/docs-only package releases.
 npm run release -- pi-elasticsearch-http minor
+# or
+npm run release -- pi-ocr-local minor
 ```
 
 `npm run release -- <pkg> <bump>` performs the release preparation:
@@ -48,7 +50,7 @@ npm run release -- pi-elasticsearch-http minor
 7. Opens the next `[Unreleased]` section and commits it.
 8. Pushes the current branch and release tag.
 
-Pushing a tag matching `pi-elasticsearch-http@v*` triggers `.github/workflows/publish-npm.yml`, which publishes to npm through npm Trusted Publishing. Do **not** run local `npm publish` for the normal path.
+Pushing a tag matching `pi-elasticsearch-http@v*` or `pi-ocr-local@v*` triggers `.github/workflows/publish-npm.yml`, which publishes the matching package to npm through npm Trusted Publishing. Do **not** run local `npm publish` for the normal path.
 
 After running release, verify the GitHub Actions publish workflow completed and npm has the new version:
 

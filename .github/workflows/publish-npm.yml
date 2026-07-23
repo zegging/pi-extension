@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'pi-elasticsearch-http@v*'
+      - 'pi-ocr-local@v*'
   workflow_dispatch:
     inputs:
       package:
@@ -29,7 +30,7 @@ jobs:
       contents: read
       id-token: write
     env:
-      PACKAGE_NAME: ${{ github.event.inputs.package || '@zegging/pi-elasticsearch-http' }}
+      PACKAGE_NAME: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.package || (startsWith(github.ref_name, 'pi-ocr-local@v') && '@zegging/pi-ocr-local' || '@zegging/pi-elasticsearch-http') }}
       SOURCE_REF: ${{ github.event.inputs.ref || github.ref_name }}
     steps:
       - name: Checkout
